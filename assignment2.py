@@ -19,33 +19,71 @@ Description: <Enter your documentation here>
 '''
 
 import argparse
-import os, sys
+import os
+import sys
 
 def parse_command_args() -> object:
-    "Set up argparse here. Call this function inside main."
-    parser = argparse.ArgumentParser(description="Memory Visualiser -- See Memory Usage Report with bar charts",epilog="Copyright 2023")
-    parser.add_argument("-l", "--length", type=int, default=20, help="Specify the length of the graph. Default is 20.")
-    # add argument for "human-readable". USE -H, don't use -h! -h is reserved for --help which is created automatically.
-    # check the docs for an argparse option to store this as a boolean.
-    parser.add_argument("program", type=str, nargs='?', help="if a program is specified, show memory use of all associated processes. Show only total use is not.")
+    """
+    Set up argparse for command-line argument parsing.
+    """
+    parser = argparse.ArgumentParser(description="Memory Visualiser -- See Memory Usage Report with bar charts",
+                                     epilog="Copyright 2023")
+    parser.add_argument("-l", "--length", type=int, default=20,
+                        help="Specify the length of the graph. Default is 20.")
+    parser.add_argument("-H", "--human-readable", action="store_true",
+                        help="Prints sizes in human-readable format.")
+    parser.add_argument("program", type=str, nargs='?',
+                        help="If a program is specified, show memory use of all associated processes.")
     args = parser.parse_args()
     return args
-# create argparse function
-# -H human readable
-# -r running only
 
-def percent_to_graph(percent: float, length: int=20) -> str:
-    "turns a percent 0.0 - 1.0 into a bar graph"
-    ...
-# percent to graph function
+def percent_to_graph(percent: float, length: int = 20) -> str:
+    """
+    Convert a percentage into a bar graph string.
+    :param percent: float, percentage value between 0.0 and 1.0
+    :param length: int, length of the bar graph
+    :return: str, bar graph representation (without brackets)
+    """
+    filled_length = int(round(percent * length))
+    return f"{'#' * filled_length}{' ' * (length - filled_length)}"
+
 
 def get_sys_mem() -> int:
-    "return total system memory (used or available) in kB"
-    ...
+    """
+    Return total system memory (in kB) by reading /proc/meminfo.
+    """
+    try:
+        with open("/proc/meminfo", "r") as meminfo:
+            for line in meminfo:
+                if line.startswith("MemTotal:"):
+                    return int(line.split()[1])
+    except FileNotFoundError:
+        print("Error: /proc/meminfo not found.")
+        sys.exit(1)
+    return 0
 
 def get_avail_mem() -> int:
-    "return total memory that is available"
-    ...
+    """
+    Return available system memory (in kB) by reading /proc/meminfo.
+    Handles WSL cases where 'MemAvailable' may not exist.
+    """
+    try:
+        with open("/proc/meminfo", "r") as meminfo:
+            mem_free = 0
+            swap_free = 0
+            for line in meminfo:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1])
+                if line.startswith("MemFree:"):
+                    mem_free = int(line.split()[1])
+                if line.startswith("SwapFree:"):
+                    swap_free = int(line.split()[1])
+            return mem_free + swap_free
+    except FileNotFoundError:
+        print("Error: /proc/meminfo not found.")
+        sys.exit(1)
+    return 0
+
 
 def pids_of_prog(app_name: str) -> list:
     "given an app name, return all pids associated with app"
@@ -69,10 +107,24 @@ def bytes_to_human_r(kibibytes: int, decimal_places: int=2) -> str:
 
 if __name__ == "__main__":
     args = parse_command_args()
+
+    # Display total and used memory graph if no program is specified
     if not args.program:
-        ...
-    else:
-        ...
+        total_memory = get_sys_mem()
+        available_memory = get_avail_mem()
+        used_memory = total_memory - available_memory
+        percent_used = used_memory / total_memory
+
+        if args.human_readable:
+            total_memory_str = f"{total_memory / 1024:.2f} MiB"
+            used_memory_str = f"{used_memory / 1024:.2f} MiB"
+        else:
+            total_memory_str = f"{total_memory} kB"
+            used_memory_str = f"{used_memory} kB"
+
+        graph = percent_to_graph(percent_used, args.length)
+        print(f"Memory         {graph} {percent_used * 100:.0f}% {used_memory_str}/{total_memory_str}")
+
     # process args
     # if no parameter passed, 
     # open meminfo.
