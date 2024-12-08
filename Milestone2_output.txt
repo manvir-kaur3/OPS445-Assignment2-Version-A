@@ -1,0 +1,35 @@
+manvir-kaur3@manvirkaur3-virtual-machine:~/ops445/assignment2$ python3 ./checkA2.py -f -v TestParseArgs
+test_argparse_help (__main__.TestParseArgs.test_argparse_help)
+assignment2.py -h returns the required options ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.023s
+
+OK
+manvir-kaur3@manvirkaur3-virtual-machine:~/ops445/assignment2$ python3 ./checkA2.py -f -v TestPidList
+test_pids (__main__.TestPidList.test_pids) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.010s
+
+OK
+manvir-kaur3@manvirkaur3-virtual-machine:~/ops445/assignment2$ python3 ./checkA2.py -f -v TestPidMe
+TestPidMe (unittest.loader._FailedTest.TestPidMe) ... ERROR
+
+======================================================================
+ERROR: TestPidMe (unittest.loader._FailedTest.TestPidMe)
+----------------------------------------------------------------------
+AttributeError: module '__main__' has no attribute 'TestPidMe'. Did you mean: 'TestPidMem'?
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)
+manvir-kaur3@manvirkaur3-virtual-machine:~/ops445/assignment2$ python3 ./checkA2.py -f -v TestPidMem
+test_rss_total (__main__.TestPidMem.test_rss_total) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+
